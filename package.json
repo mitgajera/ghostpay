@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "next dev app",
+    "build": "next build app",
+    "start": "next start app",
     "test:auth": "ts-node --project tsconfig.scripts.json scripts/test-auth.ts",
     "test:per-api": "ts-node --project tsconfig.scripts.json scripts/test-per-api.ts",
     "test:transfer": "ts-node --project tsconfig.scripts.json scripts/test-private-transfer.ts",
@@ -15,11 +15,11 @@
     "@magicblock-labs/ephemeral-rollups-sdk": "latest",
     "@solana/spl-token": "^0.4.14",
     "@solana/wallet-adapter-base": "^0.9.23",
+    "@solana/wallet-adapter-phantom": "^0.9.28",
     "@solana/wallet-adapter-react": "^0.15.35",
     "@solana/wallet-adapter-react-ui": "^0.9.35",
-    "@solana/wallet-adapter-wallets": "^0.19.32",
     "@solana/web3.js": "^1.95.3",
-    "next": "14.2.5",
+    "next": "14.2.35",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "tweetnacl": "^1.0.3"
@@ -28,6 +28,8 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "autoprefixer": "^10.4.27",
+    "tailwindcss": "^3.4.19",
     "ts-node": "^10.9.2",
     "typescript": "^5"
   }
