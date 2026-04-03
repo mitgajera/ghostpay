@@ -20,30 +20,25 @@ interface Props {
 export default function WithdrawButton({ authToken, privateBalance, onLog, onDone }: Props) {
   const { publicKey, signTransaction } = useWallet();
   const { connection } = useConnection();
-  const [amountDisplay, setAmountDisplay] = useState("");
+  const [amount, setAmount] = useState("");
   const [running, setRunning] = useState(false);
+
+  const maxUsdc = privateBalance != null ? privateBalance / 1_000_000 : 0;
 
   async function withdraw() {
     if (!publicKey || !signTransaction || !authToken) return;
-    const usdcFloat = parseFloat(amountDisplay);
+    const usdcFloat = parseFloat(amount);
     if (isNaN(usdcFloat) || usdcFloat <= 0) return;
 
-    const lamports = Math.round(usdcFloat * 1_000_000);
     setRunning(true);
-
     const teeConn = new Connection(teeUrl(authToken), "confirmed");
 
     try {
       onLog({ ts: Date.now(), level: "info", msg: `Withdrawing ${usdcFloat.toFixed(2)} USDC…` });
-      const payload = await buildWithdraw(publicKey.toBase58(), lamports, authToken);
-      const sig = await signAndSend(
-        payload,
-        connection,
-        teeConn,
-        (tx: Transaction) => signTransaction(tx)
-      );
+      const payload = await buildWithdraw(publicKey.toBase58(), Math.round(usdcFloat * 1_000_000), authToken);
+      const sig = await signAndSend(payload, connection, teeConn, (tx: Transaction) => signTransaction(tx));
       onLog({ ts: Date.now(), level: "ok", msg: `Withdraw confirmed — ${sig.slice(0, 12)}…` });
-      setAmountDisplay("");
+      setAmount("");
       onDone();
     } catch (e: any) {
       onLog({ ts: Date.now(), level: "error", msg: `Withdraw failed — ${e.message}` });
@@ -52,33 +47,36 @@ export default function WithdrawButton({ authToken, privateBalance, onLog, onDon
     }
   }
 
-  const maxUsdc = privateBalance != null ? privateBalance / 1_000_000 : 0;
-  const disabled = !publicKey || !authToken || running || !amountDisplay || parseFloat(amountDisplay) <= 0;
+  const disabled = !publicKey || !authToken || running || !amount || parseFloat(amount) <= 0;
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 flex flex-col gap-4">
-      <h2 className="text-white font-semibold">Withdraw to Wallet</h2>
+    <div className="bg-gp-surface border border-gp-border rounded-xl p-6 flex flex-col gap-4">
+      <span className="font-mono text-[10px] text-gp-ghost-dim uppercase tracking-widest">
+        Withdraw to wallet
+      </span>
 
       <div className="flex gap-2 items-end">
         <div className="flex-1 flex flex-col gap-1">
-          <label className="text-xs text-gray-400">Amount (USDC)</label>
+          <label className="font-mono text-[10px] text-gp-ghost-dim uppercase tracking-widest">
+            Amount (USDC)
+          </label>
           <input
             type="number"
             min="0"
             step="0.01"
             max={maxUsdc}
-            placeholder="0.00"
-            value={amountDisplay}
-            onChange={(e) => setAmountDisplay(e.target.value)}
+            placeholder="0.000000"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
             disabled={running || !authToken}
-            className="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-cyan-500 disabled:opacity-40"
+            className="bg-gp-surface-2 border border-gp-border hover:border-gp-border-2 focus:border-gp-ghost-dim rounded-md px-3 py-2 font-mono text-sm text-gp-white placeholder-gp-border-2 outline-none transition-colors disabled:opacity-40"
           />
         </div>
         {maxUsdc > 0 && (
           <button
-            onClick={() => setAmountDisplay(maxUsdc.toFixed(6))}
+            onClick={() => setAmount(maxUsdc.toFixed(6))}
             disabled={running || !authToken}
-            className="text-xs text-gray-500 hover:text-gray-300 pb-2 disabled:opacity-30"
+            className="font-mono text-[10px] text-gp-ghost-dim hover:text-gp-white pb-2.5 disabled:opacity-30 transition-colors uppercase tracking-widest"
           >
             Max
           </button>
@@ -89,10 +87,10 @@ export default function WithdrawButton({ authToken, privateBalance, onLog, onDon
         onClick={withdraw}
         disabled={disabled}
         className={`
-          py-3 rounded-lg font-semibold text-sm tracking-wide transition-all
+          w-full py-3.5 rounded-lg font-display font-semibold text-sm tracking-wide transition-all
           ${disabled
-            ? "bg-gray-800 text-gray-600 cursor-not-allowed"
-            : "bg-gradient-to-r from-cyan-700 to-cyan-600 hover:from-cyan-600 hover:to-cyan-500 text-white shadow-lg shadow-cyan-900/30 cursor-pointer"
+            ? "bg-gp-surface-2 text-gp-border-2 cursor-not-allowed border border-gp-border"
+            : "bg-gp-green text-gp-white hover:opacity-90 cursor-pointer shadow-lg shadow-gp-green/10"
           }
         `}
       >
@@ -100,7 +98,7 @@ export default function WithdrawButton({ authToken, privateBalance, onLog, onDon
       </button>
 
       {!authToken && (
-        <p className="text-yellow-600 text-xs text-center">Authorize TEE to withdraw</p>
+        <p className="font-mono text-[10px] text-gp-border-2 text-center">Authorize TEE to withdraw</p>
       )}
     </div>
   );

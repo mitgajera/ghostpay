@@ -1,166 +1,130 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Recipient } from "../types";
 import { Currency, CURRENCIES } from "../constants";
-import { getRate, usdcToLocal } from "../lib/fx-rates";
+import { usdcToLocal } from "../lib/fx-rates";
 
 interface Props {
   recipients: Recipient[];
   onChange: (recipients: Recipient[]) => void;
+  fxRates: Partial<Record<Currency, number>>;
 }
 
-const EMPTY_FORM = { name: "", wallet: "", currency: CURRENCIES[0] as Currency, usdcDisplay: "" };
+const EMPTY = { name: "", wallet: "", currency: CURRENCIES[0] as Currency, usdcDisplay: "" };
 
-export default function RecipientList({ recipients, onChange }: Props) {
-  const [form, setForm] = useState(EMPTY_FORM);
-  const [rates, setRates] = useState<Record<string, number>>({});
-  const [formError, setFormError] = useState<string | null>(null);
-
-  // Prefetch rates for all supported currencies
-  useEffect(() => {
-    for (const c of CURRENCIES) {
-      getRate(c)
-        .then((r) => setRates((prev) => ({ ...prev, [c]: r.rate })))
-        .catch(() => {});
-    }
-  }, []);
+export default function RecipientList({ recipients, onChange, fxRates }: Props) {
+  const [form, setForm]       = useState(EMPTY);
+  const [error, setError]     = useState<string | null>(null);
 
   function add() {
-    setFormError(null);
-    const usdcFloat = parseFloat(form.usdcDisplay);
-    if (!form.name.trim()) return setFormError("Name is required");
-    if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(form.wallet))
-      return setFormError("Invalid Solana wallet address");
-    if (isNaN(usdcFloat) || usdcFloat <= 0) return setFormError("Amount must be > 0");
+    setError(null);
+    const amt = parseFloat(form.usdcDisplay);
+    if (!form.name.trim())                           return setError("Name required");
+    if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(form.wallet.trim()))
+                                                     return setError("Invalid Solana address");
+    if (isNaN(amt) || amt <= 0)                      return setError("Amount must be > 0");
 
-    const recipient: Recipient = {
-      id: crypto.randomUUID(),
-      name: form.name.trim(),
-      wallet: form.wallet.trim(),
-      currency: form.currency,
-      amountUsdc: Math.round(usdcFloat * 1_000_000),
-    };
-    onChange([...recipients, recipient]);
-    setForm(EMPTY_FORM);
+    onChange([...recipients, {
+      id:         crypto.randomUUID(),
+      name:       form.name.trim(),
+      wallet:     form.wallet.trim(),
+      currency:   form.currency,
+      amountUsdc: Math.round(amt * 1_000_000),
+    }]);
+    setForm(EMPTY);
   }
 
   function remove(id: string) {
     onChange(recipients.filter((r) => r.id !== id));
   }
 
-  const totalUsdc = recipients.reduce((s, r) => s + r.amountUsdc, 0);
+  const label = "font-mono text-[10px] text-gp-ghost-dim uppercase tracking-widest mb-1 block";
+  const input = "w-full bg-gp-surface-2 border border-gp-border hover:border-gp-border-2 focus:border-gp-ghost-dim rounded-md px-3 py-2 font-mono text-xs text-gp-white placeholder-gp-border-2 outline-none transition-colors";
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Add row */}
-      <div className="grid grid-cols-[1fr_2fr_auto_auto_auto] gap-2 items-end">
-        <div className="flex flex-col gap-1">
-          <label className="text-xs text-gray-400">Name</label>
-          <input
-            className="bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-purple-500"
-            placeholder="Alice"
-            value={form.name}
-            onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-          />
+    <div className="flex flex-col gap-5">
+      {/* ── Add form ── */}
+      <div className="grid grid-cols-[1fr_2fr_80px_90px_auto] gap-2 items-end">
+        <div>
+          <label className={label}>Name</label>
+          <input className={input} placeholder="Alice" value={form.name}
+            onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
         </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-xs text-gray-400">Wallet</label>
-          <input
-            className="bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-purple-500"
-            placeholder="Solana public key"
-            value={form.wallet}
-            onChange={(e) => setForm((f) => ({ ...f, wallet: e.target.value }))}
-          />
+        <div>
+          <label className={label}>Wallet</label>
+          <input className={input} placeholder="Solana address" value={form.wallet}
+            onChange={(e) => setForm((f) => ({ ...f, wallet: e.target.value }))} />
         </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-xs text-gray-400">Currency</label>
-          <select
-            className="bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-sm text-white focus:outline-none focus:border-purple-500"
-            value={form.currency}
-            onChange={(e) => setForm((f) => ({ ...f, currency: e.target.value as Currency }))}
-          >
-            {CURRENCIES.map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
+        <div>
+          <label className={label}>Currency</label>
+          <select className={input} value={form.currency}
+            onChange={(e) => setForm((f) => ({ ...f, currency: e.target.value as Currency }))}>
+            {CURRENCIES.map((c) => <option key={c}>{c}</option>)}
           </select>
         </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-xs text-gray-400">USDC</label>
-          <input
-            className="bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-sm text-white w-24 placeholder-gray-500 focus:outline-none focus:border-purple-500"
-            placeholder="10.00"
-            type="number"
-            min="0"
-            step="0.01"
+        <div>
+          <label className={label}>USDC</label>
+          <input className={input} type="number" placeholder="100" min="0" step="0.01"
             value={form.usdcDisplay}
-            onChange={(e) => setForm((f) => ({ ...f, usdcDisplay: e.target.value }))}
-          />
+            onChange={(e) => setForm((f) => ({ ...f, usdcDisplay: e.target.value }))} />
         </div>
         <button
           onClick={add}
-          className="self-end bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium px-3 py-1.5 rounded transition-colors"
+          className="self-end font-display font-semibold text-xs bg-gp-green text-gp-white px-4 py-2 rounded-md hover:opacity-90 transition-opacity"
         >
           Add
         </button>
       </div>
 
-      {formError && <p className="text-red-400 text-xs">{formError}</p>}
+      {error && <p className="font-mono text-xs text-red-400">{error}</p>}
 
-      {/* Table */}
+      {/* ── Table ── */}
       {recipients.length > 0 && (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-left text-gray-500 border-b border-gray-800">
-                <th className="pb-2 font-medium">Name</th>
-                <th className="pb-2 font-medium">Wallet</th>
-                <th className="pb-2 font-medium">Currency</th>
-                <th className="pb-2 font-medium text-right">USDC</th>
-                <th className="pb-2 font-medium text-right">Local equiv.</th>
-                <th className="pb-2"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {recipients.map((r) => (
-                <tr key={r.id} className="border-b border-gray-800/50 hover:bg-gray-800/30">
-                  <td className="py-2 text-white">{r.name}</td>
-                  <td className="py-2 text-gray-400 font-mono text-xs">
-                    {r.wallet.slice(0, 6)}…{r.wallet.slice(-4)}
+        <table className="w-full text-xs font-mono border-collapse">
+          <thead>
+            <tr className="border-b border-gp-border">
+              {["Name", "Wallet", "Currency", "USDC", "Local equiv.", ""].map((h) => (
+                <th key={h} className={`pb-2 font-normal text-gp-ghost-dim uppercase tracking-widest text-[10px] ${h === "USDC" || h === "Local equiv." ? "text-right" : "text-left"}`}>
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {recipients.map((r) => {
+              const rate = fxRates[r.currency];
+              return (
+                <tr key={r.id} className="border-b border-gp-border/50 hover:bg-gp-surface-2/40 transition-colors">
+                  <td className="py-2.5 text-gp-white">{r.name}</td>
+                  <td className="py-2.5 text-gp-ghost-dim">{r.wallet.slice(0, 6)}…{r.wallet.slice(-4)}</td>
+                  <td className="py-2.5 text-gp-ghost-dim">{r.currency}</td>
+                  <td className="py-2.5 text-right text-gp-white">{(r.amountUsdc / 1_000_000).toFixed(2)}</td>
+                  <td className="py-2.5 text-right text-gp-ghost">
+                    {rate ? usdcToLocal(r.amountUsdc, rate, r.currency) : "—"}
                   </td>
-                  <td className="py-2 text-gray-300">{r.currency}</td>
-                  <td className="py-2 text-right text-white">
-                    {(r.amountUsdc / 1_000_000).toFixed(2)}
-                  </td>
-                  <td className="py-2 text-right text-cyan-400 text-xs">
-                    {rates[r.currency]
-                      ? usdcToLocal(r.amountUsdc, rates[r.currency], r.currency)
-                      : "…"}
-                  </td>
-                  <td className="py-2 text-right">
-                    <button
-                      onClick={() => remove(r.id)}
-                      className="text-gray-600 hover:text-red-400 transition-colors text-xs"
-                    >
-                      Remove
+                  <td className="py-2.5 text-right">
+                    <button onClick={() => remove(r.id)}
+                      className="text-gp-border-2 hover:text-red-400 transition-colors">
+                      ✕
                     </button>
                   </td>
                 </tr>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr className="text-gray-400">
-                <td colSpan={3} className="pt-3 text-xs">Total</td>
-                <td className="pt-3 text-right text-white font-medium">
-                  {(totalUsdc / 1_000_000).toFixed(2)} USDC
-                </td>
-                <td colSpan={2}></td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
+              );
+            })}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colSpan={3} className="pt-3 text-[10px] text-gp-ghost-dim uppercase tracking-widest">Total</td>
+              <td className="pt-3 text-right font-display font-semibold text-gp-white">
+                {(recipients.reduce((s, r) => s + r.amountUsdc, 0) / 1_000_000).toFixed(2)}
+              </td>
+              <td colSpan={2} />
+            </tr>
+          </tfoot>
+        </table>
       )}
 
       {recipients.length === 0 && (
-        <p className="text-gray-600 text-sm text-center py-4">No recipients yet.</p>
+        <p className="font-mono text-xs text-gp-border-2 text-center py-6">No recipients yet.</p>
       )}
     </div>
   );

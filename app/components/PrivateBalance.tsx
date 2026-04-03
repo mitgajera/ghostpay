@@ -7,37 +7,42 @@ interface Props {
 export default function PrivateBalance({ authToken }: Props) {
   const { balance, loading, refresh } = usePrivateBalance(authToken);
 
-  const display =
-    balance === null
-      ? "—"
-      : `${(balance / 1_000_000).toFixed(6)} USDC`;
+  const usdc = balance !== null ? (balance / 1_000_000).toFixed(6) : null;
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 flex flex-col gap-3">
+    <div className="bg-gp-surface border border-gp-border rounded-xl p-6 flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-white font-semibold">Private Balance</h2>
+        <span className="font-mono text-[10px] text-gp-ghost-dim uppercase tracking-widest">Private balance</span>
         <button
           onClick={refresh}
           disabled={loading || !authToken}
-          className="text-xs text-gray-500 hover:text-gray-300 disabled:opacity-30 transition-colors"
+          className="font-mono text-[10px] text-gp-ghost-dim hover:text-gp-ghost transition-colors disabled:opacity-30 uppercase tracking-widest"
         >
-          {loading ? "Refreshing…" : "Refresh"}
+          {loading ? "···" : "Refresh"}
         </button>
       </div>
 
-      <div className="text-center py-4">
-        <span className={`text-3xl font-bold font-mono ${
-          balance === null ? "text-gray-600" : "text-cyan-400"
-        }`}>
-          {display}
-        </span>
-        {balance !== null && balance > 0 && (
-          <p className="text-gray-500 text-xs mt-1">Inside TEE ephemeral rollup</p>
-        )}
-        {!authToken && (
-          <p className="text-gray-600 text-xs mt-1">Authorize TEE to view balance</p>
+      <div className="text-center py-6">
+        {!authToken ? (
+          <p className="font-mono text-xs text-gp-border-2">Authorize TEE to view balance</p>
+        ) : (
+          <>
+            <p className="font-display font-bold text-4xl text-gp-white tracking-tight">
+              {usdc ?? "—"}
+            </p>
+            <p className="font-mono text-xs text-gp-ghost-dim mt-2">USDC · inside TEE ephemeral rollup</p>
+          </>
         )}
       </div>
+
+      {balance !== null && balance > 0 && (
+        <div className="bg-gp-green/5 border border-gp-green/20 rounded-lg px-3 py-2 flex items-center gap-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-gp-green shrink-0" />
+          <span className="font-mono text-[10px] text-gp-green">
+            Funds visible only to you via TEE-gated access
+          </span>
+        </div>
+      )}
     </div>
   );
 }

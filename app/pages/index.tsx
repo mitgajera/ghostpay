@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/router";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { APP_NAME, APP_TAGLINE } from "../constants";
+import { APP_TAGLINE } from "../constants";
 
 export default function Home() {
   const { publicKey } = useWallet();
@@ -13,26 +13,40 @@ export default function Home() {
   }, [publicKey, router]);
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center gap-8 px-4">
-      <div className="text-center">
-        <h1 className="text-5xl font-bold tracking-tight text-white mb-2">{APP_NAME}</h1>
-        <p className="text-xl text-gray-400">{APP_TAGLINE}</p>
+    <main className="min-h-screen bg-gp-black flex flex-col items-center justify-center px-6 relative">
+      {/* Logo */}
+      <h1 className="font-display font-bold text-[clamp(4rem,12vw,8rem)] tracking-tight text-gp-white leading-none mb-5 select-none">
+        Ghost<span style={{ opacity: 0.35 }}>Pay</span>
+      </h1>
+
+      {/* Tagline */}
+      <p className="font-mono text-sm text-gp-ghost-dim mb-12 tracking-wide">
+        {APP_TAGLINE}
+      </p>
+
+      {/* Connect CTA */}
+      <WalletMultiButton />
+
+      {/* Nav links */}
+      <div className="flex gap-8 mt-14 font-mono text-xs text-gp-ghost-dim">
+        <button
+          onClick={() => router.push("/employer")}
+          className="hover:text-gp-white transition-colors"
+        >
+          Employer →
+        </button>
+        <button
+          onClick={() => router.push("/employee")}
+          className="hover:text-gp-white transition-colors"
+        >
+          Employee →
+        </button>
       </div>
 
-      <div className="flex flex-col items-center gap-4 text-center max-w-md">
-        <p className="text-gray-500 text-sm">
-          Cross-currency private payroll on Solana. Powered by MagicBlock Private Ephemeral Rollup + Intel TDX.
-        </p>
-        <WalletMultiButton />
-        <div className="flex gap-6 mt-4">
-          <a href="/employer" className="text-purple-400 hover:text-purple-300 text-sm transition-colors">
-            Employer →
-          </a>
-          <a href="/employee" className="text-cyan-400 hover:text-cyan-300 text-sm transition-colors">
-            Employee →
-          </a>
-        </div>
-      </div>
+      {/* Footer */}
+      <p className="absolute bottom-8 font-mono text-[10px] text-gp-border-2 tracking-widest uppercase">
+        Solana devnet · MagicBlock TEE · Intel TDX
+      </p>
     </main>
   );
 }

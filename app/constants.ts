@@ -22,3 +22,18 @@ export const GHOST_PAY_SEED = "ghostpay";
 // Supported currencies
 export const CURRENCIES = ["SGD", "EUR", "GBP", "AUD", "JPY"] as const;
 export type Currency = typeof CURRENCIES[number];
+
+// Design system colors
+export const COLORS = {
+  black:    "#0a0a0a",
+  white:    "#fafaf8",
+  ghost:    "#e8e6e1",
+  ghost2:   "#d0cdc6",
+  ghostDim: "#b8b5ae",
+  green:    "#1a7a4a",
+  greenBg:  "#e8f5ee",
+  surface:  "#111111",
+  surface2: "#161616",
+  border:   "#1e1e1e",
+  border2:  "#2a2a2a",
+} as const;
