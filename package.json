@@ -1,0 +1,30 @@
+{
+  "name": "ghostpay",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test:auth": "ts-node --project tsconfig.scripts.json scripts/test-auth.ts"
+  },
+  "dependencies": {
+    "@magicblock-labs/ephemeral-rollups-sdk": "latest",
+    "@solana/wallet-adapter-base": "^0.9.23",
+    "@solana/wallet-adapter-react": "^0.15.35",
+    "@solana/wallet-adapter-react-ui": "^0.9.35",
+    "@solana/wallet-adapter-wallets": "^0.19.32",
+    "@solana/web3.js": "^1.95.3",
+    "next": "14.2.5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tweetnacl": "^1.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "ts-node": "^10.9.2",
+    "typescript": "^5"
+  }
+}
