@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { useRouter } from "next/router";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { APP_TAGLINE } from "../constants";
 
 export default function Home() {
   const { publicKey } = useWallet();
@@ -13,39 +12,57 @@ export default function Home() {
   }, [publicKey, router]);
 
   return (
-    <main className="min-h-screen bg-gp-black flex flex-col items-center justify-center px-6 relative">
-      {/* Logo */}
-      <h1 className="font-display font-bold text-[clamp(4rem,12vw,8rem)] tracking-tight text-gp-white leading-none mb-5 select-none">
-        Ghost<span style={{ opacity: 0.35 }}>Pay</span>
-      </h1>
+    <main className="min-h-screen bg-gp-black flex flex-col items-center justify-center px-6 relative overflow-hidden">
 
-      {/* Tagline */}
-      <p className="font-mono text-sm text-gp-ghost-dim mb-12 tracking-wide">
-        {APP_TAGLINE}
-      </p>
+      {/* Ambient glow */}
+      <div
+        aria-hidden
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: "radial-gradient(ellipse 60% 50% at 50% 50%, rgba(26,122,74,0.05) 0%, transparent 100%)" }}
+      />
 
-      {/* Connect CTA */}
-      <WalletMultiButton />
+      {/* Main content */}
+      <div className="relative flex flex-col items-center gap-7 animate-fade-in">
 
-      {/* Nav links */}
-      <div className="flex gap-8 mt-14 font-mono text-xs text-gp-ghost-dim">
-        <button
-          onClick={() => router.push("/employer")}
-          className="hover:text-gp-white transition-colors"
+        {/* Logo */}
+        <h1
+          className="font-display font-extrabold tracking-[-0.025em] text-gp-white leading-none select-none"
+          style={{ fontSize: "clamp(72px, 16vw, 148px)" }}
         >
-          Employer →
-        </button>
-        <button
-          onClick={() => router.push("/employee")}
-          className="hover:text-gp-white transition-colors"
-        >
-          Employee →
-        </button>
+          Ghost<span style={{ opacity: 0.28 }}>Pay</span>
+        </h1>
+
+        {/* Tagline */}
+        <p className="font-mono text-xs tracking-[0.28em] text-gp-ghost-dim uppercase">
+          Pay your team · Leave no trace
+        </p>
+
+        {/* CTA */}
+        <div className="mt-3">
+          <WalletMultiButton />
+        </div>
+
+        {/* Role nav */}
+        <div className="flex items-center gap-7 mt-6 font-mono text-[11px] text-gp-border-3">
+          <button
+            onClick={() => router.push("/employer")}
+            className="hover:text-gp-ghost-dim transition-colors duration-150"
+          >
+            Employer →
+          </button>
+          <span className="text-gp-border-2 select-none">·</span>
+          <button
+            onClick={() => router.push("/employee")}
+            className="hover:text-gp-ghost-dim transition-colors duration-150"
+          >
+            Employee →
+          </button>
+        </div>
       </div>
 
       {/* Footer */}
-      <p className="absolute bottom-8 font-mono text-[10px] text-gp-border-2 tracking-widest uppercase">
-        Solana devnet · MagicBlock TEE · Intel TDX
+      <p className="absolute bottom-8 font-mono text-[9px] tracking-[0.22em] text-gp-border-2 uppercase select-none">
+        Intel TDX &nbsp;·&nbsp; Solana devnet &nbsp;·&nbsp; MagicBlock TEE
       </p>
     </main>
   );
