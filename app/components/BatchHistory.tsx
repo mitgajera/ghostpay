@@ -52,7 +52,7 @@ export default function BatchHistory({ onClone, onToast }: Props) {
                 </span>
                 {/* Show which coins were used */}
                 <div className="flex gap-1">
-                  {[...new Set(b.recipients.map((r) => r.stablecoin ?? "USDC"))].map((coin) => {
+                  {Array.from(new Set(b.recipients.map((r) => r.stablecoin ?? "USDC"))).map((coin) => {
                     const c = STABLECOINS[coin as keyof typeof STABLECOINS];
                     return (
                       <span
