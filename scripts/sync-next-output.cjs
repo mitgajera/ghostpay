@@ -14,5 +14,7 @@ if (fs.existsSync(targetDir)) {
   fs.rmSync(targetDir, { recursive: true, force: true });
 }
 
-fs.cpSync(sourceDir, targetDir, { recursive: true });
-console.log(`Synced ${sourceDir} -> ${targetDir}`);
+// Keep real output in app/.next and expose root .next as a link for Vercel detection.
+const linkType = process.platform === "win32" ? "junction" : "dir";
+fs.symlinkSync(sourceDir, targetDir, linkType);
+console.log(`Linked ${targetDir} -> ${sourceDir}`);
