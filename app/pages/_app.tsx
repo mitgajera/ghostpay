@@ -6,6 +6,8 @@ import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { PhantomWalletAdapter } from "@solana/wallet-adapter-phantom";
 import "@solana/wallet-adapter-react-ui/styles.css";
 import "../styles/globals.css";
+import Ticker from "../components/Ticker";
+import Footer from "../components/Footer";
 
 const dmMono = DM_Mono({
   subsets: ["latin"],
@@ -35,11 +37,15 @@ export default function App({ Component, pageProps }: AppProps) {
   if (!mounted) return null;
 
   return (
-    <div className={`${dmMono.variable} ${syne.variable} font-mono bg-gp-black min-h-screen`}>
+    <div className={`${dmMono.variable} ${syne.variable} font-mono bg-gp-black h-screen overflow-hidden flex flex-col`}>
       <CP endpoint={DEVNET_RPC}>
         <WP wallets={wallets} autoConnect>
           <WMP>
-            <Component {...pageProps} />
+            <Ticker />
+            <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+              <Component {...pageProps} />
+            </div>
+            <Footer />
           </WMP>
         </WP>
       </CP>

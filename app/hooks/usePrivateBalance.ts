@@ -5,7 +5,7 @@ import { STABLECOINS } from "../constants";
 
 export function usePrivateBalance(
   authToken: string | null,
-  mint = STABLECOINS.USDC.mint,
+  mint: string = STABLECOINS.USDC.mint,
   pollIntervalMs = 10_000,
 ) {
   const { publicKey } = useWallet();

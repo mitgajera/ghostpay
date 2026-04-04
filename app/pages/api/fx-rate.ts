@@ -2,14 +2,25 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 const BASE_CURRENCY = "USD";
 
-// Open Exchange Rates free tier (no key required for base USD)
-// Falls back to hardcoded rates if network fails
 const FALLBACK_RATES: Record<string, number> = {
-  SGD: 1.35,
+  USD: 1.00,
   EUR: 0.92,
   GBP: 0.79,
+  SGD: 1.35,
   AUD: 1.53,
   JPY: 149.5,
+  CAD: 1.36,
+  CHF: 0.90,
+  INR: 83.2,
+  AED: 3.67,
+  HKD: 7.83,
+  KRW: 1330,
+  BRL: 4.97,
+  MXN: 17.2,
+  NZD: 1.63,
+  PHP: 56.4,
+  NGN: 1520,
+  ZAR: 18.9,
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

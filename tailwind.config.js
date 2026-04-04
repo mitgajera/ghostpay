@@ -23,9 +23,11 @@ module.exports = {
         display: ["var(--font-syne)",    "Syne",    "sans-serif"],
       },
       animation: {
-        "pulse-dot": "pulse-dot 2.4s ease-in-out infinite",
-        "fade-in":   "fade-in 0.4s ease-out both",
-        "slide-up":  "slide-up 0.4s ease-out both",
+        "pulse-dot":   "pulse-dot 2.4s ease-in-out infinite",
+        "fade-in":     "fade-in 0.4s ease-out both",
+        "slide-up":    "slide-up 0.4s ease-out both",
+        "ticker":      "ticker-scroll 50s linear infinite",
+        "ticker-fast": "ticker-scroll 28s linear infinite",
       },
       keyframes: {
         "pulse-dot": {
@@ -39,6 +41,10 @@ module.exports = {
         "slide-up": {
           from: { opacity: "0", transform: "translateY(8px)" },
           to:   { opacity: "1", transform: "translateY(0)" },
+        },
+        "ticker-scroll": {
+          "0%":   { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-50%)" },
         },
       },
     },

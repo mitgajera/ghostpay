@@ -6,6 +6,7 @@ export function buildPayslip(p: PaymentRecord, employerWallet: string): Payslip 
     recipientWallet: p.recipientWallet,
     employerWallet,
     amountUsdc:      p.amountUsdc,
+    stablecoin:      p.stablecoin ?? "USDC",
     currency:        p.currency,
     localAmount:     p.localAmount,
     date:            p.date,

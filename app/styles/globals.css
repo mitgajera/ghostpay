@@ -6,6 +6,8 @@
   *, *::before, *::after { box-sizing: border-box; }
 
   html, body {
+    height: 100%;
+    overflow: hidden;
     background-color: #0a0a0a;
     color: #e8e6e1;
     font-family: var(--font-dm-mono), "DM Mono", monospace;
@@ -13,10 +15,11 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  ::-webkit-scrollbar              { width: 4px; height: 4px; }
+  /* Thin scrollbar for inner scroll areas only */
+  ::-webkit-scrollbar              { width: 3px; height: 3px; }
   ::-webkit-scrollbar-track        { background: transparent; }
-  ::-webkit-scrollbar-thumb        { background: #252525; border-radius: 2px; }
-  ::-webkit-scrollbar-thumb:hover  { background: #333; }
+  ::-webkit-scrollbar-thumb        { background: #1e1e1e; border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover  { background: #2a2a2a; }
 
   ::selection { background: rgba(26,122,74,0.25); color: #fafaf8; }
 }
@@ -46,6 +49,36 @@
     @apply font-display font-semibold text-sm text-gp-ghost tracking-wide;
   }
 }
+
+/* ── Ticker scroll animation ───────────────────────────────────────── */
+@keyframes ticker-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* ── Price slide-in animations (solprice.now style) ───────────────────── */
+/* Up: new number slides in from below, turns green then fades to normal   */
+/* Down: new number slides in from above, turns red then fades to normal   */
+@keyframes price-slide-up {
+  0%   { transform: translateY(6px);  opacity: 0; color: #34d399; }
+  30%  { transform: translateY(0);    opacity: 1; color: #34d399; }
+  70%  { color: #34d399; }
+  100% { transform: translateY(0);    opacity: 1; color: #e8e6e1; }
+}
+@keyframes price-slide-down {
+  0%   { transform: translateY(-6px); opacity: 0; color: #f87171; }
+  30%  { transform: translateY(0);    opacity: 1; color: #f87171; }
+  70%  { color: #f87171; }
+  100% { transform: translateY(0);    opacity: 1; color: #e8e6e1; }
+}
+/* Background flash on the wrapper */
+@keyframes bg-flash-up   { 0% { background: rgba(52,211,153,0.12); } 100% { background: transparent; } }
+@keyframes bg-flash-down { 0% { background: rgba(248,113,113,0.12); } 100% { background: transparent; } }
+
+.price-slide-up      { animation: price-slide-up   0.9s ease-out forwards; }
+.price-slide-down    { animation: price-slide-down 0.9s ease-out forwards; }
+.price-bg-flash-up   { animation: bg-flash-up   0.9s ease-out forwards; }
+.price-bg-flash-down { animation: bg-flash-down 0.9s ease-out forwards; }
 
 /* ── Wallet adapter overrides ──────────────────────────────────────── */
 .wallet-adapter-button {
@@ -86,4 +119,18 @@
 .wallet-adapter-modal-list li > button,
 .wallet-adapter-modal-list li > button:not([tabindex="-1"]):hover {
   background: #141414 !important;
+}
+
+/* Dark wallet button for header context */
+.wallet-header .wallet-adapter-button-trigger {
+  background: #141414 !important;
+  border-color: #252525 !important;
+  color: #b8b5ae !important;
+  font-size: 0.7rem !important;
+  padding: 0.375rem 0.75rem !important;
+}
+.wallet-header .wallet-adapter-button-trigger:hover:not(:disabled) {
+  background: #1a1a1a !important;
+  border-color: #333 !important;
+  color: #e8e6e1 !important;
 }

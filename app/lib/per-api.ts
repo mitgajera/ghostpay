@@ -77,12 +77,12 @@ async function get(path: string, params: Record<string, string>, authToken?: str
 
 // ─── Mint initialization ──────────────────────────────────────────────────────
 
-export async function isMintInitialized(mint = DEFAULT_MINT): Promise<MintInitializationResponse> {
+export async function isMintInitialized(mint: string = DEFAULT_MINT): Promise<MintInitializationResponse> {
   const res = await get("/v1/spl/is-mint-initialized", { mint, cluster: "devnet" });
   return res.json();
 }
 
-export async function buildInitializeMint(payer: string, mint = DEFAULT_MINT): Promise<TxPayload> {
+export async function buildInitializeMint(payer: string, mint: string = DEFAULT_MINT): Promise<TxPayload> {
   const res = await post("/v1/spl/initialize-mint", { payer, mint, cluster: "devnet" });
   return res.json();
 }
@@ -96,7 +96,7 @@ export async function buildInitializeMint(payer: string, mint = DEFAULT_MINT): P
 export async function buildDeposit(
   owner: string,
   amountLamports: number,
-  mint = DEFAULT_MINT,
+  mint: string = DEFAULT_MINT,
   opts: { initIfMissing?: boolean; initVaultIfMissing?: boolean; initAtasIfMissing?: boolean } = {
     initIfMissing: true,
     initVaultIfMissing: true,
@@ -124,7 +124,7 @@ export async function buildPrivateTransfer(
   to: string,
   amountLamports: number,
   authToken: string,
-  mint = DEFAULT_MINT,
+  mint: string = DEFAULT_MINT,
   fromBalance: "base" | "ephemeral" = "base",
   toBalance: "base" | "ephemeral" = "ephemeral",
 ): Promise<TxPayload> {
@@ -156,7 +156,7 @@ export async function buildWithdraw(
   owner: string,
   amountLamports: number,
   authToken: string,
-  mint = DEFAULT_MINT,
+  mint: string = DEFAULT_MINT,
 ): Promise<TxPayload> {
   const res = await post(
     "/v1/spl/withdraw",
@@ -169,7 +169,7 @@ export async function buildWithdraw(
 // ─── Balances ─────────────────────────────────────────────────────────────────
 
 /** Get public stablecoin balance on Solana devnet (base chain). */
-export async function getPublicBalance(address: string, mint = DEFAULT_MINT): Promise<BalanceResponse> {
+export async function getPublicBalance(address: string, mint: string = DEFAULT_MINT): Promise<BalanceResponse> {
   const res = await get("/v1/spl/balance", { address, mint, cluster: "devnet" });
   return res.json();
 }
@@ -178,7 +178,7 @@ export async function getPublicBalance(address: string, mint = DEFAULT_MINT): Pr
 export async function getPrivateBalance(
   address: string,
   authToken: string,
-  mint = DEFAULT_MINT,
+  mint: string = DEFAULT_MINT,
 ): Promise<BalanceResponse> {
   const res = await get(
     "/v1/spl/private-balance",

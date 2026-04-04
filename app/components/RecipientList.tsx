@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import { Recipient } from "../types";
-import { Currency, CURRENCIES, STABLECOINS, STABLECOIN_SYMBOLS, StablecoinSymbol } from "../constants";
+import { Currency, CURRENCIES, CURRENCY_META, STABLECOINS, STABLECOIN_SYMBOLS, StablecoinSymbol } from "../constants";
 import { usdcToLocal } from "../lib/fx-rates";
 import { getAll } from "../lib/address-book";
 import { AddressBookEntry } from "../types";
+import CoinImg from "./CoinImg";
+import FlagImg from "./FlagImg";
 
 interface Props {
   recipients: Recipient[];
@@ -19,23 +21,11 @@ const EMPTY = {
   usdcDisplay: "",
 };
 
-function CoinBadge({ symbol, size = "sm" }: { symbol: StablecoinSymbol; size?: "xs" | "sm" }) {
-  const coin = STABLECOINS[symbol];
-  return (
-    <span
-      className={`font-mono font-semibold rounded px-1.5 py-px ${size === "xs" ? "text-[9px]" : "text-[10px]"}`}
-      style={{ color: coin.color, background: coin.bgColor, border: `1px solid ${coin.color}30` }}
-    >
-      {symbol}
-    </span>
-  );
-}
-
 export default function RecipientList({ recipients, onChange, fxRates }: Props) {
-  const [form, setForm]         = useState(EMPTY);
-  const [error, setError]       = useState<string | null>(null);
-  const [hovered, setHovered]   = useState<string | null>(null);
-  const [bookOpen, setBookOpen] = useState(false);
+  const [form, setForm]             = useState(EMPTY);
+  const [error, setError]           = useState<string | null>(null);
+  const [hovered, setHovered]       = useState<string | null>(null);
+  const [bookOpen, setBookOpen]     = useState(false);
   const [bookSearch, setBookSearch] = useState("");
   const bookRef = useRef<HTMLDivElement>(null);
   const usdcRef = useRef<HTMLInputElement>(null);
@@ -96,7 +86,7 @@ export default function RecipientList({ recipients, onChange, fxRates }: Props) 
   );
 
   const total = recipients.reduce((s, r) => s + r.amountUsdc, 0);
-  const coin  = STABLECOINS[form.stablecoin];
+  const activeCoin = STABLECOINS[form.stablecoin];
 
   return (
     <div className="flex flex-col gap-6">
@@ -107,7 +97,7 @@ export default function RecipientList({ recipients, onChange, fxRates }: Props) 
           <table className="w-full text-xs font-mono min-w-[560px]">
             <thead>
               <tr>
-                {["Name", "Wallet", "Asset", "Cur", "Amount", "Local equiv.", ""].map((h, i) => (
+                {["Name", "Wallet", "Asset", "Pays in", "Amount", "Local equiv.", ""].map((h, i) => (
                   <th
                     key={h + i}
                     className={`pb-3 font-normal text-[9px] text-gp-ghost-dim/60 uppercase tracking-[0.14em] border-b border-gp-border ${
@@ -122,6 +112,8 @@ export default function RecipientList({ recipients, onChange, fxRates }: Props) 
             <tbody>
               {recipients.map((r) => {
                 const rate = fxRates[r.currency];
+                const coin = r.stablecoin ?? "USDC";
+                const coinMeta = STABLECOINS[coin as StablecoinSymbol];
                 return (
                   <tr
                     key={r.id}
@@ -130,13 +122,28 @@ export default function RecipientList({ recipients, onChange, fxRates }: Props) 
                     className="border-b border-gp-border/50 transition-colors duration-100 hover:bg-gp-surface-2/60"
                   >
                     <td className="py-3 text-gp-ghost font-medium">{r.name}</td>
-                    <td className="py-3 text-gp-ghost-dim">
+                    <td className="py-3 text-gp-ghost-dim font-mono">
                       {r.wallet.slice(0, 6)}…{r.wallet.slice(-4)}
                     </td>
+                    {/* Coin logo + symbol */}
                     <td className="py-3">
-                      <CoinBadge symbol={r.stablecoin ?? "USDC"} size="xs" />
+                      <span className="inline-flex items-center gap-1.5">
+                        <CoinImg symbol={coin} size={14} />
+                        <span
+                          className="font-mono text-[9px] font-semibold"
+                          style={{ color: coinMeta?.color ?? "#888" }}
+                        >
+                          {coin}
+                        </span>
+                      </span>
                     </td>
-                    <td className="py-3 text-gp-ghost-dim">{r.currency}</td>
+                    {/* Country flag + currency code */}
+                    <td className="py-3">
+                      <span className="inline-flex items-center gap-1.5">
+                        <FlagImg currency={r.currency} size={12} />
+                        <span className="text-gp-ghost-dim">{r.currency}</span>
+                      </span>
+                    </td>
                     <td className="py-3 text-right text-gp-ghost">
                       {(r.amountUsdc / 1_000_000).toFixed(2)}
                     </td>
@@ -226,7 +233,8 @@ export default function RecipientList({ recipients, onChange, fxRates }: Props) 
                             {e.wallet.slice(0, 6)}…{e.wallet.slice(-4)}
                           </p>
                         </div>
-                        <span className="font-mono text-[9px] text-gp-ghost-dim/50 border border-gp-border rounded px-1.5 py-px">
+                        <span className="inline-flex items-center gap-1.5 font-mono text-[9px] text-gp-ghost-dim/50 border border-gp-border rounded px-1.5 py-px">
+                          <FlagImg currency={e.currency} size={11} />
                           {e.currency}
                         </span>
                       </button>
@@ -238,8 +246,8 @@ export default function RecipientList({ recipients, onChange, fxRates }: Props) 
           </div>
         </div>
 
-        {/* Stablecoin pill selector */}
-        <div className="flex items-center gap-1.5 mb-3">
+        {/* Stablecoin pill selector — coin logo + symbol */}
+        <div className="flex items-center gap-1.5 mb-3 flex-wrap">
           <span className="font-mono text-[9px] text-gp-ghost-dim/40 uppercase tracking-widest mr-1">Pay in</span>
           {STABLECOIN_SYMBOLS.map((s) => {
             const c = STABLECOINS[s];
@@ -248,13 +256,14 @@ export default function RecipientList({ recipients, onChange, fxRates }: Props) 
               <button
                 key={s}
                 onClick={() => setForm((f) => ({ ...f, stablecoin: s }))}
-                className="font-mono text-[10px] font-semibold px-2.5 py-1 rounded-lg transition-all duration-150"
+                className="inline-flex items-center gap-1.5 font-mono text-[10px] font-semibold px-2.5 py-1 rounded-lg transition-all duration-150"
                 style={
                   active
                     ? { color: c.color, background: c.bgColor, border: `1px solid ${c.color}50` }
                     : { color: "#6b6966", background: "transparent", border: "1px solid #2a2a2a" }
                 }
               >
+                <CoinImg symbol={s} size={14} />
                 {s}
               </button>
             );
@@ -289,11 +298,13 @@ export default function RecipientList({ recipients, onChange, fxRates }: Props) 
               value={form.currency}
               onChange={(e) => setForm((f) => ({ ...f, currency: e.target.value as Currency }))}
             >
-              {CURRENCIES.map((c) => <option key={c}>{c}</option>)}
+              {CURRENCIES.map((c) => (
+                <option key={c} value={c}>{CURRENCY_META[c]?.flag} {c} — {CURRENCY_META[c]?.name}</option>
+              ))}
             </select>
           </div>
           <div>
-            <label className="gp-label" style={{ color: coin.color }}>
+            <label className="gp-label" style={{ color: activeCoin.color }}>
               {form.stablecoin} amount
             </label>
             <input
@@ -306,7 +317,7 @@ export default function RecipientList({ recipients, onChange, fxRates }: Props) 
               value={form.usdcDisplay}
               onChange={(e) => setForm((f) => ({ ...f, usdcDisplay: e.target.value }))}
               onKeyDown={handleKey}
-              style={{ borderColor: form.usdcDisplay ? `${coin.color}40` : undefined }}
+              style={{ borderColor: form.usdcDisplay ? `${activeCoin.color}40` : undefined }}
             />
           </div>
           <div className="mt-[22px]">

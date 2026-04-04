@@ -12,13 +12,13 @@ export default function Home() {
   }, [publicKey, router]);
 
   return (
-    <main className="min-h-screen bg-gp-black flex flex-col items-center justify-center px-6 relative overflow-hidden">
+    <main className="flex-1 min-h-0 bg-gp-black flex flex-col items-center justify-center px-6 relative overflow-hidden py-8">
 
       {/* Ambient glow */}
       <div
         aria-hidden
         className="absolute inset-0 pointer-events-none"
-        style={{ background: "radial-gradient(ellipse 60% 50% at 50% 50%, rgba(26,122,74,0.05) 0%, transparent 100%)" }}
+        style={{ background: "radial-gradient(ellipse 60% 50% at 50% 50%, rgba(26,122,74,0.06) 0%, transparent 100%)" }}
       />
 
       {/* Main content */}
@@ -37,13 +37,18 @@ export default function Home() {
           Pay your team · Leave no trace
         </p>
 
+        {/* Sub-tagline */}
+        <p className="font-mono text-[10px] tracking-[0.14em] text-gp-border-3 uppercase max-w-xs text-center leading-relaxed">
+          Multi-coin private payroll · Intel TDX · Solana devnet
+        </p>
+
         {/* CTA */}
         <div className="mt-3">
           <WalletMultiButton />
         </div>
 
         {/* Role nav */}
-        <div className="flex items-center gap-7 mt-6 font-mono text-[11px] text-gp-border-3">
+        <div className="flex items-center gap-7 mt-4 font-mono text-[11px] text-gp-border-3">
           <button
             onClick={() => router.push("/employer")}
             className="hover:text-gp-ghost-dim transition-colors duration-150"
@@ -58,12 +63,26 @@ export default function Home() {
             Employee →
           </button>
         </div>
-      </div>
 
-      {/* Footer */}
-      <p className="absolute bottom-8 font-mono text-[9px] tracking-[0.22em] text-gp-border-2 uppercase select-none">
-        Intel TDX &nbsp;·&nbsp; Solana devnet &nbsp;·&nbsp; MagicBlock TEE
-      </p>
+        {/* Feature pills */}
+        <div className="flex flex-wrap justify-center gap-2 mt-4 max-w-sm">
+          {[
+            "USDC · USDT · PYUSD · EURC · USDG",
+            "18 Currencies",
+            "MagicBlock TEE",
+            "Zero on-chain traces",
+            "Batch payroll",
+            "Payslip download",
+          ].map((f) => (
+            <span
+              key={f}
+              className="font-mono text-[9px] text-gp-border-3 border border-gp-border rounded-full px-2.5 py-1 uppercase tracking-widest"
+            >
+              {f}
+            </span>
+          ))}
+        </div>
+      </div>
     </main>
   );
 }

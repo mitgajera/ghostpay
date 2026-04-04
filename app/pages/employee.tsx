@@ -64,7 +64,7 @@ export default function EmployeePage() {
 
   if (!publicKey) {
     return (
-      <main className="min-h-screen bg-gp-black flex flex-col items-center justify-center gap-8 px-6">
+      <main className="flex-1 bg-gp-black flex flex-col items-center justify-center gap-8 px-6">
         <h1 className="font-display font-extrabold text-gp-white tracking-tight select-none" style={{ fontSize: "clamp(48px,10vw,96px)" }}>
           Ghost<span style={{ opacity: 0.28 }}>Pay</span>
         </h1>
@@ -78,10 +78,10 @@ export default function EmployeePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gp-black flex flex-col">
+    <div className="flex flex-col h-full bg-gp-black overflow-hidden">
 
       {/* ── Sticky header ─────────────────────────────────────────── */}
-      <header className="sticky top-0 z-20 bg-gp-black/95 backdrop-blur-sm border-b border-gp-border flex items-center justify-between px-6 h-14">
+      <header className="shrink-0 z-20 bg-gp-black/95 backdrop-blur-sm border-b border-gp-border flex items-center justify-between px-6 h-14">
         <div className="flex items-center gap-5">
           <button onClick={() => router.push("/")} className="font-display font-bold text-xl text-gp-white tracking-tight leading-none select-none hover:opacity-80 transition-opacity">
             Ghost<span style={{ opacity: 0.28 }}>Pay</span>
@@ -93,12 +93,13 @@ export default function EmployeePage() {
           <span className="font-mono text-[10px] text-gp-border-3 hidden sm:block">
             {publicKey.toBase58().slice(0, 6)}…{publicKey.toBase58().slice(-4)}
           </span>
-          <WalletMultiButton />
+          <div className="wallet-header"><WalletMultiButton /></div>
         </div>
       </header>
 
       {/* ── Page body ─────────────────────────────────────────────── */}
-      <main className="flex-1 px-4 sm:px-6 py-8 max-w-lg mx-auto w-full flex flex-col gap-6">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
+      <main className="px-4 sm:px-6 pt-8 pb-24 max-w-lg mx-auto w-full flex flex-col gap-6">
 
         {/* TEE auth strip */}
         <div className={`rounded-xl border px-4 py-3 flex items-center justify-between transition-colors ${
@@ -213,6 +214,7 @@ export default function EmployeePage() {
         </nav>
 
       </main>
+      </div>
 
       {/* Toast */}
       {toast && (

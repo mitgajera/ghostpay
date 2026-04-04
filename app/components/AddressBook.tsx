@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { AddressBookEntry, Recipient } from "../types";
-import { Currency, CURRENCIES } from "../constants";
+import { Currency, CURRENCIES, CURRENCY_META } from "../constants";
 import { getAll, addEntry, removeEntry } from "../lib/address-book";
+import FlagImg from "./FlagImg";
 
 interface Props {
   onAddToPayroll: (entry: AddressBookEntry) => void;
@@ -77,7 +78,9 @@ export default function AddressBook({ onAddToPayroll, onToast }: Props) {
               <label className="gp-label">Currency</label>
               <select className="gp-input" value={form.currency}
                 onChange={(e) => setForm(f => ({ ...f, currency: e.target.value as Currency }))}>
-                {CURRENCIES.map(c => <option key={c}>{c}</option>)}
+                {CURRENCIES.map(c => (
+                  <option key={c} value={c}>{CURRENCY_META[c]?.flag} {c} — {CURRENCY_META[c]?.name}</option>
+                ))}
               </select>
             </div>
             <div className="mt-[22px]">
@@ -103,7 +106,9 @@ export default function AddressBook({ onAddToPayroll, onToast }: Props) {
                 <div className="flex items-center gap-2">
                   <span className="font-display font-semibold text-sm text-gp-ghost">{e.name}</span>
                   {e.label && <span className="font-mono text-[9px] text-gp-border-3 uppercase tracking-widest border border-gp-border-2 rounded px-1.5 py-px">{e.label}</span>}
-                  <span className="font-mono text-[10px] text-gp-ghost-dim/50">{e.currency}</span>
+                  <span className="inline-flex items-center gap-1 font-mono text-[10px] text-gp-ghost-dim/50">
+                    <FlagImg currency={e.currency} size={11} /> {e.currency}
+                  </span>
                 </div>
                 <p className="font-mono text-[10px] text-gp-border-3 mt-0.5">
                   {e.wallet.slice(0, 8)}…{e.wallet.slice(-6)}

@@ -2,9 +2,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { CURRENCIES } from "../constants";
+import { CURRENCIES, STABLECOINS, STABLECOIN_SYMBOLS } from "../constants";
 import { useTeeAuth } from "../hooks/useTeeAuth";
-import { usePrivateBalance } from "../hooks/usePrivateBalance";
 import { getPublicBalance } from "../lib/per-api";
 import { getRate } from "../lib/fx-rates";
 import { getSchedules } from "../lib/schedule";
@@ -54,23 +53,26 @@ export default function EmployerPage() {
   const { publicKey } = useWallet();
   const router = useRouter();
   const { authToken, teeVerified, loading: authLoading, error: authError, authorize } = useTeeAuth();
-  const { balance: privateBalance } = usePrivateBalance(authToken?.token ?? null);
 
-  const [tab, setTab]             = useState<Tab>("payroll");
+  const [tab, setTab]               = useState<Tab>("payroll");
   const [recipients, setRecipients] = useState<Recipient[]>([]);
-  const [log, setLog]             = useState<LogEntry[]>([]);
-  const [publicBalance, setPublicBalance] = useState<number | null>(null);
-  const [fxRates, setFxRates]     = useState<Partial<Record<Currency, number>>>({});
-  const [explorer, setExplorer]   = useState<ExplorerData | null>(null);
-  const [toast, setToast]         = useState<{ level: "ok"|"error"|"info"; msg: string } | null>(null);
-  const [dueCount, setDueCount]   = useState(0);
+  const [log, setLog]               = useState<LogEntry[]>([]);
+  const [pubBalances, setPubBalances] = useState<Partial<Record<string, number>>>({});
+  const [fxRates, setFxRates]       = useState<Partial<Record<Currency, number>>>({});
+  const [explorer, setExplorer]     = useState<ExplorerData | null>(null);
+  const [toast, setToast]           = useState<{ level: "ok"|"error"|"info"; msg: string } | null>(null);
+  const [dueCount, setDueCount]     = useState(0);
 
-  useEffect(() => {
+  function refreshBalances() {
     if (!publicKey) return;
-    getPublicBalance(publicKey.toBase58())
-      .then((r) => setPublicBalance(Number(r.balance)))
-      .catch(() => {});
-  }, [publicKey]);
+    STABLECOIN_SYMBOLS.forEach((coin) => {
+      getPublicBalance(publicKey.toBase58(), STABLECOINS[coin].mint)
+        .then((r) => setPubBalances((p) => ({ ...p, [coin]: Number(r.balance) })))
+        .catch(() => {});
+    });
+  }
+
+  useEffect(() => { refreshBalances(); }, [publicKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     CURRENCIES.forEach((c) => {
@@ -110,7 +112,7 @@ export default function EmployerPage() {
 
   if (!publicKey) {
     return (
-      <main className="min-h-screen bg-gp-black flex flex-col items-center justify-center gap-8 px-6">
+      <main className="flex-1 bg-gp-black flex flex-col items-center justify-center gap-8 px-6">
         <h1 className="font-display font-extrabold text-gp-white tracking-tight select-none" style={{ fontSize: "clamp(48px,10vw,96px)" }}>
           Ghost<span style={{ opacity: 0.28 }}>Pay</span>
         </h1>
@@ -124,10 +126,10 @@ export default function EmployerPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gp-black flex flex-col">
+    <div className="flex flex-col h-full bg-gp-black overflow-hidden">
 
       {/* ── Sticky header ─────────────────────────────────────────── */}
-      <header className="sticky top-0 z-20 bg-gp-black/95 backdrop-blur-sm border-b border-gp-border flex items-center justify-between px-6 h-14">
+      <header className="shrink-0 z-20 bg-gp-black/95 backdrop-blur-sm border-b border-gp-border flex items-center justify-between px-6 h-14">
         <div className="flex items-center gap-5">
           <button onClick={() => router.push("/")} className="font-display font-bold text-xl text-gp-white tracking-tight select-none leading-none hover:opacity-80 transition-opacity">
             Ghost<span style={{ opacity: 0.28 }}>Pay</span>
@@ -135,25 +137,30 @@ export default function EmployerPage() {
           <span className="font-mono text-[9px] text-gp-border-3 uppercase tracking-[0.18em] hidden sm:block">Employer</span>
           {teeVerified && <TeeDot verified={teeVerified} />}
         </div>
-        <div className="flex items-center gap-4">
-          {publicBalance !== null && (
-            <div className="hidden sm:flex flex-col items-end">
-              <span className="font-mono text-[9px] text-gp-border-3 uppercase tracking-widest">Public</span>
-              <span className="font-mono text-xs text-gp-ghost-dim">{(publicBalance / 1_000_000).toFixed(2)} USDC</span>
-            </div>
-          )}
-          {authToken && privateBalance !== null && (
-            <div className="hidden sm:flex flex-col items-end">
-              <span className="font-mono text-[9px] text-gp-border-3 uppercase tracking-widest">Private</span>
-              <span className="font-mono text-xs text-gp-green">{(privateBalance / 1_000_000).toFixed(2)} USDC</span>
-            </div>
-          )}
-          <WalletMultiButton />
+        <div className="flex items-center gap-3">
+          {/* Per-coin public balances */}
+          <div className="hidden sm:flex items-center gap-2">
+            {STABLECOIN_SYMBOLS.filter((c) => pubBalances[c] != null && pubBalances[c]! > 0).map((coin) => {
+              const meta = STABLECOINS[coin];
+              return (
+                <div key={coin} className="flex flex-col items-end">
+                  <span className="font-mono text-[8px] uppercase tracking-widest" style={{ color: meta.color }}>
+                    {coin}
+                  </span>
+                  <span className="font-mono text-[11px] text-gp-ghost-dim">
+                    {(pubBalances[coin]! / 1_000_000).toFixed(2)}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          <div className="wallet-header"><WalletMultiButton /></div>
         </div>
       </header>
 
       {/* ── Page body ─────────────────────────────────────────────── */}
-      <main className="flex-1 px-4 sm:px-6 py-8 max-w-4xl mx-auto w-full flex flex-col gap-6">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
+      <main className="px-4 sm:px-6 pt-8 pb-24 max-w-4xl mx-auto w-full flex flex-col gap-6">
 
         {/* TEE auth strip */}
         <div className={`rounded-xl border px-4 py-3 flex items-center justify-between transition-colors ${
@@ -186,7 +193,7 @@ export default function EmployerPage() {
         )}
 
         {/* ── Tab navigation ──────────────────────────────────────── */}
-        <div className="gp-card overflow-hidden">
+        <div className="gp-card overflow-visible">
           <TabBar tabs={tabs} active={tab} onChange={(id) => setTab(id as Tab)} />
 
           <div className="px-6 py-6">
@@ -231,9 +238,7 @@ export default function EmployerPage() {
                       setExplorer({ sig, recipientCount: count, totalUsdc: total })
                     }
                     onDone={() => {
-                      getPublicBalance(publicKey.toBase58())
-                        .then((r) => setPublicBalance(Number(r.balance)))
-                        .catch(() => {});
+                      refreshBalances();
                       setRecipients([]);
                     }}
                   />
@@ -309,6 +314,7 @@ export default function EmployerPage() {
         </nav>
 
       </main>
+      </div>
 
       {/* Toast */}
       {toast && (
