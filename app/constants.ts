@@ -23,6 +23,20 @@ export const GHOST_PAY_SEED = "ghostpay";
 export const CURRENCIES = ["SGD", "EUR", "GBP", "AUD", "JPY"] as const;
 export type Currency = typeof CURRENCIES[number];
 
+// Schedule cadences
+export const CADENCES = ["weekly", "biweekly", "monthly"] as const;
+export type Cadence = typeof CADENCES[number];
+
+// localStorage keys
+export const LS_TEMPLATES   = "ghostpay_templates";
+export const LS_SCHEDULES   = "ghostpay_schedules";
+export const LS_ADDRESSBOOK = "ghostpay_addressbook";
+export const LS_HISTORY     = "ghostpay_history";
+export const LS_PAYMENTS    = "ghostpay_payments_"; // + walletAddress
+
+// Solana Explorer
+export const EXPLORER_BASE = "https://explorer.solana.com/tx";
+
 // Design system colors
 export const COLORS = {
   black:    "#0a0a0a",
