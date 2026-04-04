@@ -1,11 +1,12 @@
-import { Currency, Cadence } from "./constants";
+import { Currency, Cadence, StablecoinSymbol } from "./constants";
 
 export interface Recipient {
   id: string;
   name: string;
   wallet: string;
   currency: Currency;
-  amountUsdc: number; // lamports (6 decimals)
+  stablecoin: StablecoinSymbol; // which on-chain asset to pay in
+  amountUsdc: number; // amount in 6-decimal base units (same for all supported coins)
   label?: string;
 }
 
@@ -53,7 +54,7 @@ export interface BatchRecord {
   recipientCount: number;
   depositSig: string;
   settled: boolean;
-  recipients: { name: string; wallet: string; amountUsdc: number; currency: Currency }[];
+  recipients: { name: string; wallet: string; amountUsdc: number; currency: Currency; stablecoin: StablecoinSymbol }[];
 }
 
 // - Payment records (employee side)
@@ -62,6 +63,7 @@ export interface PaymentRecord {
   employerWallet: string;
   recipientWallet: string;
   amountUsdc: number;
+  stablecoin: StablecoinSymbol;
   currency: Currency;
   localAmount: string;
   date: number;
@@ -74,6 +76,7 @@ export interface Payslip {
   recipientWallet: string;
   employerWallet: string;
   amountUsdc: number;
+  stablecoin: StablecoinSymbol;
   currency: Currency;
   localAmount: string;
   date: number;

@@ -8,10 +8,15 @@
  * Caller must sign with wallet and send to the correct cluster:
  *   sendTo === "base"      → Solana devnet connection
  *   sendTo === "ephemeral" → TEE RPC connection (authenticated URL)
+ *
+ * All functions accept a `mint` parameter so any supported stablecoin
+ * (USDC, USDT, PYUSD, EURC, USDG …) can be used transparently.
  */
 
 import { Connection, Transaction } from "@solana/web3.js";
-import { PAYMENTS_API, USDC_MINT } from "../constants";
+import { PAYMENTS_API, STABLECOINS } from "../constants";
+
+const DEFAULT_MINT = STABLECOINS.USDC.mint;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -72,43 +77,26 @@ async function get(path: string, params: Record<string, string>, authToken?: str
 
 // ─── Mint initialization ──────────────────────────────────────────────────────
 
-/**
- * Check whether the validator-scoped transfer queue is initialized for a mint.
- * Must be called before the first deposit — call `buildInitializeMint` if false.
- */
-export async function isMintInitialized(): Promise<MintInitializationResponse> {
-  const res = await get("/v1/spl/is-mint-initialized", {
-    mint: USDC_MINT,
-    cluster: "devnet",
-  });
+export async function isMintInitialized(mint = DEFAULT_MINT): Promise<MintInitializationResponse> {
+  const res = await get("/v1/spl/is-mint-initialized", { mint, cluster: "devnet" });
   return res.json();
 }
 
-/**
- * Build the one-time setup transaction that initializes the validator's
- * transfer queue for the USDC mint. Must be signed and sent to "base" (devnet).
- * Only needed once per mint per validator — idempotent after first run.
- */
-export async function buildInitializeMint(payer: string): Promise<TxPayload> {
-  const res = await post("/v1/spl/initialize-mint", {
-    payer,
-    mint: USDC_MINT,
-    cluster: "devnet",
-  });
+export async function buildInitializeMint(payer: string, mint = DEFAULT_MINT): Promise<TxPayload> {
+  const res = await post("/v1/spl/initialize-mint", { payer, mint, cluster: "devnet" });
   return res.json();
 }
 
 // ─── Core flow ────────────────────────────────────────────────────────────────
 
 /**
- * Step 1 — Deposit USDC from Solana devnet into the ephemeral rollup (PER).
+ * Step 1 — Deposit stablecoin from Solana devnet into the ephemeral rollup (PER).
  * sendTo: "base" → sign and send to Solana devnet.
- * Pass initIfMissing/initVaultIfMissing/initAtasIfMissing: true to auto-create
- * any missing accounts on the first deposit.
  */
 export async function buildDeposit(
   owner: string,
   amountLamports: number,
+  mint = DEFAULT_MINT,
   opts: { initIfMissing?: boolean; initVaultIfMissing?: boolean; initAtasIfMissing?: boolean } = {
     initIfMissing: true,
     initVaultIfMissing: true,
@@ -117,7 +105,7 @@ export async function buildDeposit(
 ): Promise<TxPayload> {
   const res = await post("/v1/spl/deposit", {
     owner,
-    mint: USDC_MINT,
+    mint,
     amount: amountLamports,
     cluster: "devnet",
     initIfMissing: opts.initIfMissing ?? true,
@@ -129,25 +117,14 @@ export async function buildDeposit(
 
 /**
  * Step 2 — Private transfer via the PrivatePaymentsProg.
- *
- * Default route: fromBalance="base", toBalance="ephemeral"
- *   - Takes USDC from sender's devnet ATA.
- *   - Recipient's EATA is initialized + delegated automatically if it doesn't
- *     exist yet (signed only by sender — no recipient keypair needed).
- *   - Recipient's PRIVATE balance is updated (visible via getPrivateBalance).
- *   - sendTo = "base" (9 instructions, goes to Solana devnet).
- *   - This is the correct GhostPay payroll route.
- *
- * Other combinations:
- *   fromBalance="base",      toBalance="base"      → sends to recipient's devnet ATA (not private)
- *   fromBalance="ephemeral", toBalance="ephemeral" → direct TEE transfer; requires full
- *                                                    DelegationProg ATA setup (not done by deposit)
+ * Default route: fromBalance="base", toBalance="ephemeral" — the GhostPay payroll route.
  */
 export async function buildPrivateTransfer(
   from: string,
   to: string,
   amountLamports: number,
   authToken: string,
+  mint = DEFAULT_MINT,
   fromBalance: "base" | "ephemeral" = "base",
   toBalance: "base" | "ephemeral" = "ephemeral",
 ): Promise<TxPayload> {
@@ -156,7 +133,7 @@ export async function buildPrivateTransfer(
     {
       from,
       to,
-      mint: USDC_MINT,
+      mint,
       amount: amountLamports,
       visibility: "private",
       fromBalance,
@@ -172,22 +149,18 @@ export async function buildPrivateTransfer(
 }
 
 /**
- * Step 3 — Withdraw USDC from the PER back to the owner's Solana devnet wallet.
+ * Step 3 — Withdraw stablecoin from the PER back to the owner's Solana devnet wallet.
  * sendTo: "base" → sign and send to Solana devnet.
  */
 export async function buildWithdraw(
   owner: string,
   amountLamports: number,
-  authToken: string
+  authToken: string,
+  mint = DEFAULT_MINT,
 ): Promise<TxPayload> {
   const res = await post(
     "/v1/spl/withdraw",
-    {
-      owner,
-      mint: USDC_MINT,
-      amount: amountLamports,
-      cluster: "devnet",
-    },
+    { owner, mint, amount: amountLamports, cluster: "devnet" },
     authToken
   );
   return res.json();
@@ -195,27 +168,21 @@ export async function buildWithdraw(
 
 // ─── Balances ─────────────────────────────────────────────────────────────────
 
-/** Get public USDC balance on Solana devnet (base chain). */
-export async function getPublicBalance(address: string): Promise<BalanceResponse> {
-  const res = await get("/v1/spl/balance", {
-    address,
-    mint: USDC_MINT,
-    cluster: "devnet",
-  });
+/** Get public stablecoin balance on Solana devnet (base chain). */
+export async function getPublicBalance(address: string, mint = DEFAULT_MINT): Promise<BalanceResponse> {
+  const res = await get("/v1/spl/balance", { address, mint, cluster: "devnet" });
   return res.json();
 }
 
-/**
- * Get private USDC balance inside the ephemeral rollup.
- * Requires a valid auth token obtained via fetchAuthToken().
- */
+/** Get private stablecoin balance inside the ephemeral rollup. Requires auth token. */
 export async function getPrivateBalance(
   address: string,
-  authToken: string
+  authToken: string,
+  mint = DEFAULT_MINT,
 ): Promise<BalanceResponse> {
   const res = await get(
     "/v1/spl/private-balance",
-    { address, mint: USDC_MINT, cluster: "devnet" },
+    { address, mint, cluster: "devnet" },
     authToken
   );
   return res.json();
@@ -223,14 +190,6 @@ export async function getPrivateBalance(
 
 // ─── Send helper ──────────────────────────────────────────────────────────────
 
-/**
- * Deserialize a base64 transaction from a TxPayload, sign it, and send it to
- * the correct connection based on payload.sendTo:
- *   "base"      → Solana devnet
- *   "ephemeral" → TEE RPC (use teeUrl(token) as the connection endpoint)
- *
- * Returns the transaction signature.
- */
 export async function signAndSend(
   payload: TxPayload,
   connection: Connection,
@@ -242,10 +201,6 @@ export async function signAndSend(
   const txBytes = Buffer.from(payload.transactionBase64, "base64");
   let tx = Transaction.from(txBytes);
 
-  // The payments API fetches the blockhash from its own base-chain RPC.
-  // The TEE RPC runs an independent slot clock — it will reject any blockhash
-  // it hasn't seen. For ephemeral transactions, swap in a fresh TEE blockhash
-  // before signing so the signature covers the correct value.
   if (payload.sendTo === "ephemeral") {
     const { blockhash } = await teeConnection.getLatestBlockhash("confirmed");
     tx.recentBlockhash = blockhash;

@@ -1,8 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { getPrivateBalance } from "../lib/per-api";
+import { STABLECOINS } from "../constants";
 
-export function usePrivateBalance(authToken: string | null, pollIntervalMs = 10_000) {
+export function usePrivateBalance(
+  authToken: string | null,
+  mint = STABLECOINS.USDC.mint,
+  pollIntervalMs = 10_000,
+) {
   const { publicKey } = useWallet();
   const [balance, setBalance] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
@@ -11,14 +16,14 @@ export function usePrivateBalance(authToken: string | null, pollIntervalMs = 10_
     if (!publicKey || !authToken) return;
     setLoading(true);
     try {
-      const res = await getPrivateBalance(publicKey.toBase58(), authToken);
+      const res = await getPrivateBalance(publicKey.toBase58(), authToken, mint);
       setBalance(Number(res.balance));
     } catch {
       // silently ignore polling errors
     } finally {
       setLoading(false);
     }
-  }, [publicKey, authToken]);
+  }, [publicKey, authToken, mint]);
 
   useEffect(() => {
     refresh();
