@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Recipient } from "../types";
 import { Currency, CURRENCIES } from "../constants";
 import { usdcToLocal } from "../lib/fx-rates";
+import { getAll } from "../lib/address-book";
+import { AddressBookEntry } from "../types";
 
 interface Props {
   recipients: Recipient[];
@@ -12,9 +14,26 @@ interface Props {
 const EMPTY = { name: "", wallet: "", currency: CURRENCIES[0] as Currency, usdcDisplay: "" };
 
 export default function RecipientList({ recipients, onChange, fxRates }: Props) {
-  const [form, setForm]   = useState(EMPTY);
-  const [error, setError] = useState<string | null>(null);
-  const [hovered, setHovered] = useState<string | null>(null);
+  const [form, setForm]         = useState(EMPTY);
+  const [error, setError]       = useState<string | null>(null);
+  const [hovered, setHovered]   = useState<string | null>(null);
+  const [bookOpen, setBookOpen] = useState(false);
+  const [bookSearch, setBookSearch] = useState("");
+  const bookRef = useRef<HTMLDivElement>(null);
+  const usdcRef = useRef<HTMLInputElement>(null);
+
+  // Close address book popover on outside click
+  useEffect(() => {
+    if (!bookOpen) return;
+    function handle(e: MouseEvent) {
+      if (bookRef.current && !bookRef.current.contains(e.target as Node)) {
+        setBookOpen(false);
+        setBookSearch("");
+      }
+    }
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
+  }, [bookOpen]);
 
   function add() {
     setError(null);
@@ -43,6 +62,21 @@ export default function RecipientList({ recipients, onChange, fxRates }: Props) 
   function handleKey(e: React.KeyboardEvent) {
     if (e.key === "Enter") add();
   }
+
+  function pickContact(entry: AddressBookEntry) {
+    setForm((f) => ({ ...f, name: entry.name, wallet: entry.wallet, currency: entry.currency }));
+    setBookOpen(false);
+    setBookSearch("");
+    // focus USDC input after a tick
+    setTimeout(() => usdcRef.current?.focus(), 50);
+  }
+
+  const contacts = getAll();
+  const filtered = contacts.filter(
+    (e) =>
+      e.name.toLowerCase().includes(bookSearch.toLowerCase()) ||
+      e.wallet.toLowerCase().includes(bookSearch.toLowerCase())
+  );
 
   const total = recipients.reduce((s, r) => s + r.amountUsdc, 0);
 
@@ -119,13 +153,70 @@ export default function RecipientList({ recipients, onChange, fxRates }: Props) 
         </div>
       ) : (
         <p className="font-mono text-xs text-gp-border-3 text-center py-8">
-          No recipients yet — add one below.
+          No recipients yet — add one below or pick from address book.
         </p>
       )}
 
       {/* ── Add form ─────────────────────────────────────────────── */}
       <div className="border-t border-gp-border pt-5">
-        <p className="gp-label mb-4">Add recipient</p>
+        <div className="flex items-center justify-between mb-4">
+          <p className="gp-label">Add recipient</p>
+
+          {/* Address book picker */}
+          <div className="relative" ref={bookRef}>
+            <button
+              onClick={() => { setBookOpen((o) => !o); setBookSearch(""); }}
+              className="font-mono text-[10px] text-gp-ghost-dim border border-gp-border-2 hover:border-gp-border-3 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5"
+            >
+              <span className="text-gp-ghost-dim/50">☰</span> From address book
+              {contacts.length > 0 && (
+                <span className="bg-gp-surface-2 text-gp-border-3 text-[9px] px-1.5 rounded-full">
+                  {contacts.length}
+                </span>
+              )}
+            </button>
+
+            {bookOpen && (
+              <div className="absolute right-0 top-full mt-1.5 w-72 bg-gp-surface border border-gp-border-2 rounded-xl shadow-xl z-30 overflow-hidden animate-slide-up">
+                <div className="p-2 border-b border-gp-border">
+                  <input
+                    className="gp-input text-xs w-full"
+                    placeholder="Search contacts…"
+                    value={bookSearch}
+                    onChange={(e) => setBookSearch(e.target.value)}
+                    autoFocus
+                  />
+                </div>
+                <div className="max-h-48 overflow-y-auto">
+                  {filtered.length === 0 ? (
+                    <p className="font-mono text-[10px] text-gp-border-3 text-center py-4">
+                      {contacts.length === 0 ? "No contacts yet" : "No results"}
+                    </p>
+                  ) : (
+                    filtered.map((e) => (
+                      <button
+                        key={e.wallet}
+                        onClick={() => pickContact(e)}
+                        className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-gp-surface-2 transition-colors text-left"
+                      >
+                        <div>
+                          <p className="font-display font-semibold text-xs text-gp-ghost">{e.name}</p>
+                          <p className="font-mono text-[9px] text-gp-border-3 mt-0.5">
+                            {e.wallet.slice(0, 6)}…{e.wallet.slice(-4)}
+                          </p>
+                        </div>
+                        <span className="font-mono text-[9px] text-gp-ghost-dim/50 border border-gp-border rounded px-1.5 py-px">
+                          {e.currency}
+                        </span>
+                      </button>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
         <div className="grid grid-cols-[1fr_2fr_72px_88px_auto] gap-2 items-start">
           <div>
             <label className="gp-label">Name</label>
@@ -160,6 +251,7 @@ export default function RecipientList({ recipients, onChange, fxRates }: Props) 
           <div>
             <label className="gp-label">USDC</label>
             <input
+              ref={usdcRef}
               className="gp-input"
               type="number"
               placeholder="100"
