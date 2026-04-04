@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev app",
-    "build": "next build app && node scripts/sync-next-output.cjs",
+    "build": "next build app",
     "start": "next start app",
     "test:auth": "ts-node --project tsconfig.scripts.json scripts/test-auth.ts",
     "test:per-api": "ts-node --project tsconfig.scripts.json scripts/test-per-api.ts",
