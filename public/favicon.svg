@@ -1,20 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- Background -->
-  <rect width="32" height="32" rx="6" fill="#0d0d0d"/>
-  <!-- Green accent line top -->
-  <rect x="0" y="0" width="32" height="2" rx="1" fill="#1a7a4a"/>
-  <!--
-    "G" letterform built from rectangles — no font dependency.
-    Outer arc = top bar + left bar + bottom bar + inner shelf
-  -->
-  <!-- Top bar of G -->
-  <rect x="8" y="7" width="14" height="3" rx="1" fill="#fafaf8"/>
-  <!-- Left bar of G -->
-  <rect x="8" y="7" width="3" height="18" rx="1" fill="#fafaf8"/>
-  <!-- Bottom bar of G -->
-  <rect x="8" y="22" width="14" height="3" rx="1" fill="#fafaf8"/>
-  <!-- Inner shelf (middle-right of G) -->
-  <rect x="15" y="16" width="7" height="3" rx="1" fill="#fafaf8"/>
-  <!-- Right bar bottom half of G -->
-  <rect x="19" y="16" width="3" height="9" rx="1" fill="#fafaf8"/>
+  <rect width="32" height="32" rx="5" fill="#0a0a0a"/>
+  <text
+    x="2" y="21"
+    font-family="system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif"
+    font-weight="900"
+    font-size="13"
+    letter-spacing="-0.5"
+  ><tspan fill="#fafaf8">G</tspan><tspan fill="#666660">Pay</tspan></text>
 </svg>

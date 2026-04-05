@@ -5,9 +5,9 @@ export default function Document() {
     <Html lang="en">
       <Head>
         {/* ── Favicon ──────────────────────────────────────────────── */}
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-        <link rel="icon" href="/favicon.svg" />
-        <link rel="shortcut icon" href="/favicon.svg" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=4" />
+        <link rel="icon" href="/favicon.svg?v=4" />
+        <link rel="shortcut icon" href="/favicon.svg?v=4" />
 
         {/* ── Meta ─────────────────────────────────────────────────── */}
         <meta name="description" content="Private batch payroll on Solana — Intel TDX TEE, 5 stablecoins, 18 currencies." />
