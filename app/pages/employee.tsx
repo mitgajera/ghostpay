@@ -64,15 +64,28 @@ export default function EmployeePage() {
 
   if (!publicKey) {
     return (
-      <main className="flex-1 bg-gp-black flex flex-col items-center justify-center gap-8 px-6">
-        <h1 className="font-display font-extrabold text-gp-white tracking-tight select-none" style={{ fontSize: "clamp(48px,10vw,96px)" }}>
-          Ghost<span style={{ opacity: 0.28 }}>Pay</span>
-        </h1>
-        <p className="font-mono text-xs text-gp-ghost-dim tracking-wide">Connect to view your private balance.</p>
-        <WalletMultiButton />
-        <button onClick={() => router.push("/")} className="font-mono text-[10px] text-gp-border-3 hover:text-gp-ghost-dim transition-colors uppercase tracking-widest">
-          ← Back
-        </button>
+      <main className="flex-1 bg-gp-black flex flex-col items-center justify-center gap-6 px-6 relative overflow-hidden">
+        <div aria-hidden className="absolute inset-0 pointer-events-none"
+          style={{ background: "radial-gradient(ellipse 50% 50% at 50% 50%, rgba(26,122,74,0.06) 0%, transparent 100%)" }} />
+        <div className="relative flex flex-col items-center gap-5 animate-fade-in text-center max-w-sm">
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-gp-green animate-pulse-dot" />
+            <span className="font-mono text-[10px] text-gp-green uppercase tracking-[0.18em]">Employee Portal</span>
+          </div>
+          <h1 className="font-display font-extrabold text-gp-white tracking-tight select-none leading-none"
+            style={{ fontSize: "clamp(48px,10vw,80px)", letterSpacing: "-0.03em" }}>
+            Ghost<span style={{ opacity: 0.22 }}>Pay</span>
+          </h1>
+          <p className="font-mono text-xs text-gp-ghost-dim/70 leading-relaxed">
+            View your private balance · Withdraw · Download payslips
+          </p>
+          <WalletMultiButton />
+          <div className="flex items-center gap-4 font-mono text-[10px] text-gp-border-3 mt-1">
+            <button onClick={() => router.push("/")} className="hover:text-gp-ghost-dim transition-colors">← Home</button>
+            <span className="text-gp-border-2">·</span>
+            <button onClick={() => router.push("/employer")} className="hover:text-gp-ghost-dim transition-colors">Employer →</button>
+          </div>
+        </div>
       </main>
     );
   }

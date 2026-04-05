@@ -1,5 +1,6 @@
 import type { AppProps } from "next/app";
 import { useEffect, useMemo, useState } from "react";
+import Head from "next/head";
 import { DM_Mono, Syne } from "next/font/google";
 import { ConnectionProvider, WalletProvider } from "@solana/wallet-adapter-react";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
@@ -37,18 +38,24 @@ export default function App({ Component, pageProps }: AppProps) {
   if (!mounted) return null;
 
   return (
-    <div className={`${dmMono.variable} ${syne.variable} font-mono bg-gp-black h-screen overflow-hidden flex flex-col`}>
-      <CP endpoint={DEVNET_RPC}>
-        <WP wallets={wallets} autoConnect>
-          <WMP>
-            <Ticker />
-            <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-              <Component {...pageProps} />
-            </div>
-            <Footer />
-          </WMP>
-        </WP>
-      </CP>
-    </div>
+    <>
+      <Head>
+        <title>GhostPay</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </Head>
+      <div className={`${dmMono.variable} ${syne.variable} font-mono bg-gp-black h-screen overflow-hidden flex flex-col`}>
+        <CP endpoint={DEVNET_RPC}>
+          <WP wallets={wallets} autoConnect>
+            <WMP>
+              <Ticker />
+              <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+                <Component {...pageProps} />
+              </div>
+              <Footer />
+            </WMP>
+          </WP>
+        </CP>
+      </div>
+    </>
   );
 }
